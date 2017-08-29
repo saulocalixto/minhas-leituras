@@ -13,12 +13,12 @@ const headers = {
 }
 
 export const get = (bookId) =>
-  fetch(`${api}/books/${bookId}`, { headers })
+  fetch(`${api}/books/${bookId}`, { headers: { 'Authorization': 'Saulo' } })
     .then(res => res.json())
     .then(data => data.book)
 
 export const getAll = () =>
-  fetch(`${api}/books`, { headers })
+  fetch(`${api}/books`, { headers: { 'Authorization': 'Saulo' } })
     .then(res => res.json())
     .then(data => data.books)
 
@@ -27,7 +27,8 @@ export const update = (book, shelf) =>
     method: 'PUT',
     headers: {
       ...headers,
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
+      'Authorization': 'Saulo'
     },
     body: JSON.stringify({ shelf })
   }).then(res => res.json())
@@ -37,7 +38,8 @@ export const search = (query, maxResults) =>
     method: 'POST',
     headers: {
       ...headers,
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
+      'Authorization': 'Saulo'
     },
     body: JSON.stringify({ query, maxResults })
   }).then(res => res.json())
