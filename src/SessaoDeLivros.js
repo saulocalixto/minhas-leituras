@@ -1,13 +1,11 @@
 import React from 'react'
 
-class SessaoDeLivros extends React.Component {
-  
-  render() {
+const SessaoDeLivros = (props) => {
     return (
       <ol className="books-grid">
-        {this.props.livros.map((livro, index) => (
+        {props.livros.map((livro, index) => (
           <li key={index}>
-            <div className="book">
+            <div className="book" id={livro.id}>
               <div className="book-top">
                 <div className="book-cover" style={{ width: 128, height: 193,
                  backgroundImage: `url(${livro.imageLinks.smallThumbnail})` }}></div>
@@ -15,7 +13,7 @@ class SessaoDeLivros extends React.Component {
                   <select 
                   name={ livro.id }
                   value={ livro.shelf }
-                  onChange={this.props.alteraStatus}
+                  onChange={props.alteraStatus}
                   >
                     <option value="none" disabled>Mover para...</option>
                     <option value="currentlyReading">Currently Reading</option>
@@ -32,7 +30,6 @@ class SessaoDeLivros extends React.Component {
         ), this)}
       </ol>
     ) 
-  }
 }
 
 export default SessaoDeLivros;

@@ -1,8 +1,7 @@
 import React from 'react'
-import SessaoDeLivros from './SessaoDeLivros.js'
 import Searchpage from './SearchPage.js'
+import PaginaInicial from './PaginaInicial.js'
 import * as BooksAPI from './BooksAPI'
-import { Link } from 'react-router-dom'
 import { Route } from 'react-router-dom'
 import './App.css'
 
@@ -25,13 +24,6 @@ class BooksApp extends React.Component {
     livros: [],
     livrosBuscados: []
   }
-
-  constructor(props) {
-    super(props)
-    this.alteraStatus = this.alteraStatus.bind(this);
-    this.buscarLivro = this.buscarLivro.bind(this);
-    this.adicionaLivro = this.adicionaLivro.bind(this);
-  }
   
   componentDidMount() {
     this.pegarLivros();
@@ -41,54 +33,71 @@ class BooksApp extends React.Component {
     this.setState({livrosBuscados: []})
   }
 
-  pegarLivros() {
+  pegarLivros = () => {
     BooksAPI.getAll().then((livros) => {
       this.setState({ livros })
     })
   }
 
 
-  alteraStatus(event) {
-    let value = event.target.value;
-    let name = event.target.name;
+  alteraStatus = (event) => {
+    const value = event.target.value;
+    const name = event.target.name;
 
-    let livro = this.state.livros.find(x => x.id === name);
-    livro.shelf = value
+    const livro = this.state.livros.filter(x => x.id === name).map(x => ({...x, shelf: value})).find(x => x);
 
-    let livrosAtuais = this.state.livros.filter(x => x.title !== livro.title);
-    livrosAtuais.push(livro)
+    const livrosAtuais = this.state.livros.filter(x => x.title !== livro.title).concat([livro]);
 
-    BooksAPI.update(livro, value).then(() => {
-      this.setState({ livros: livrosAtuais })
-    })
+    this.atualizaLivro(value, livro, livrosAtuais);
   }
 
-  adicionaLivro(event) {
-    let livro = this.state.livrosBuscados.find(x => x.id === event.target.name);
-    livro.shelf = event.target.value;
-    let livros = this.state.livros.filter(x => x.id !== event.target.name);
-    livros.push(livro);
-    BooksAPI.update(livro, event.target.value).then(() => {
+  adicionaLivro = (event) => {
+    const value = event.target.value;
+    const name = event.target.name;
+    
+    const livro = this.state.livrosBuscados.find(x => x.id === name);
+    livro.shelf = value;
+
+    const livros = this.state.livros.filter(x => x.id !== name).concat([livro]);
+    this.atualizaLivro(value, livro, livros);
+  }
+
+  atualizaLivro = (value, livro, livros) => {
+    BooksAPI.update(livro, value).then(() => {
       this.setState({ livros })
     })
   }
 
-  buscarLivro(event) {
-    BooksAPI.search(event.target.value, 10)
+  buscarLivro = (event) => {
+    const value = event.target.value;
+
+    if(value === "") {
+      this.atualizaResultado([]);
+    } else {
+      this.efetuaBuscas(value);
+    }
+  }
+
+  atualizaResultado = (livrosBuscados) => {
+    this.setState({ livrosBuscados })
+  }
+
+  efetuaBuscas = (value) => {
+    let livrosAtt = [];
+    BooksAPI.search(value, 10)
       .then((livrosBuscados) => {
         try {
-          let livrosAtt = [];
           livrosBuscados.forEach(function (element) {
             let livro = this.state.livros.find(x => x.id === element.id);
             if (livro !== undefined) {
               livrosAtt.push(livro)
             } else {
-              element.shelf = ''
+              element.shelf = 'none'
               livrosAtt.push(element);
             }
           }, this);
 
-          this.setState({ livrosBuscados: livrosAtt })
+          this.atualizaResultado(livrosAtt);
         }
         catch (err) {
         }
@@ -105,30 +114,10 @@ class BooksApp extends React.Component {
             buscarLivro={this.buscarLivro} />
         )} />
         <Route exact path='/' render={() => (
-          <div className="list-books">
-            <div className="list-books-title">
-              <h1>MyReads</h1>
-            </div>
-            <div className="list-books-content">
-              <div>
-                {this.estantes.map((sessao) => (
-                  <div className="bookshelf" key={sessao.value}>
-                    <h2 className="bookshelf-title">{sessao.nome}</h2>
-                    <div className="bookshelf-books">
-                      <SessaoDeLivros livros={this.state.livros.filter(x => x.shelf === sessao.value)}
-                        alteraStatus={this.alteraStatus} />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div className="open-search">
-              <Link
-                to='/search'
-                className='add-contact'
-              >Adicionar livro</Link>
-            </div>
-          </div>
+          <PaginaInicial 
+          estantes={ this.estantes }
+          livros={ this.state.livros } 
+          alteraStatus={ this.alteraStatus }/>
         )} />
 
       </div>
